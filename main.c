@@ -37,18 +37,18 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
   g_signal_connect(G_OBJECT(window), "button-press-event", G_CALLBACK(destroy_menu), NULL);
 }
 
-static void make_tray_icon(void){
-	GtkStatusIcon *tray_icon = gtk_status_icon_new();
-	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(make_menu), NULL);
-	g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
-	gtk_status_icon_set_from_icon_name(tray_icon, GTK_STOCK_PREFERENCES);
-	gtk_status_icon_set_tooltip_text(tray_icon, "Example Tray Icon");
-	gtk_status_icon_set_visible(tray_icon, TRUE);
+void make_tray_icon(void){
+  GtkStatusIcon *tray_icon = gtk_status_icon_new();
+  g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(make_menu), NULL);
+  g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
+  gtk_status_icon_set_from_icon_name(tray_icon, GTK_STOCK_PREFERENCES);
+  gtk_status_icon_set_tooltip_text(tray_icon, "Example Tray Icon");
+  gtk_status_icon_set_visible(tray_icon, TRUE);
 }
 
 int main(int argc, char **argv) {
-	gtk_init(&argc, &argv);
-	make_tray_icon();
-	gtk_main();
-	return 0;
+  gtk_init(&argc, &argv);
+  make_tray_icon();
+  gtk_main();
+  return 0;
 }
