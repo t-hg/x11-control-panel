@@ -1,5 +1,13 @@
 #include <gtk/gtk.h>
 
+void on_volume_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
+  printf("Volume changed\n");
+}
+
+void on_brightness_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
+  printf("Brightness changed\n");
+}
+
 void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
   gdouble x = event->button.x;
   gdouble y = event->button.y;
@@ -16,10 +24,12 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
   gtk_widget_set_halign(labelVolume, GTK_ALIGN_START);
   GtkWidget *scaleVolume = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
   gtk_scale_set_value_pos(GTK_SCALE(scaleVolume), GTK_POS_RIGHT);
+  g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(on_volume_changed), NULL);
   GtkWidget *labelBrightness = gtk_label_new("Brightness:");
   gtk_widget_set_halign(labelBrightness, GTK_ALIGN_START);
   GtkWidget *scaleBrightness = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
   gtk_scale_set_value_pos(GTK_SCALE(scaleBrightness), GTK_POS_RIGHT);
+  g_signal_connect(G_OBJECT(scaleBrightness), "value-changed", G_CALLBACK(on_brightness_changed), NULL);
   GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(vbox), labelVolume);
   gtk_container_add(GTK_CONTAINER(vbox), scaleVolume);
@@ -37,18 +47,18 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
   g_signal_connect(G_OBJECT(window), "button-press-event", G_CALLBACK(destroy_menu), NULL);
 }
 
-void make_tray_icon(void){
-  GtkStatusIcon *tray_icon = gtk_status_icon_new();
-  g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(make_menu), NULL);
-  g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
-  gtk_status_icon_set_from_icon_name(tray_icon, GTK_STOCK_PREFERENCES);
-  gtk_status_icon_set_tooltip_text(tray_icon, "Example Tray Icon");
-  gtk_status_icon_set_visible(tray_icon, TRUE);
+static void make_tray_icon(void){
+	GtkStatusIcon *tray_icon = gtk_status_icon_new();
+	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(make_menu), NULL);
+	g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
+	gtk_status_icon_set_from_icon_name(tray_icon, GTK_STOCK_PREFERENCES);
+	gtk_status_icon_set_tooltip_text(tray_icon, "Example Tray Icon");
+	gtk_status_icon_set_visible(tray_icon, TRUE);
 }
 
 int main(int argc, char **argv) {
-  gtk_init(&argc, &argv);
-  make_tray_icon();
-  gtk_main();
-  return 0;
+	gtk_init(&argc, &argv);
+	make_tray_icon();
+	gtk_main();
+	return 0;
 }
