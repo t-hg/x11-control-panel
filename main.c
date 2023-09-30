@@ -21,21 +21,27 @@ gint get_volume() {
 void set_volume(gint value) {
   char str[128];
   sprintf(str, "pamixer --set-volume %d", value);
-  if (system(str) == 0) {
-    fprintf(stdout, "volume changed to %d\n", value);
-  } else {
+  if (system(str) != 0) {
     fprintf(stderr, "is pamixer installed?\n");
+  } 
+}
+
+void set_status_icon_icon(GtkStatusIcon *status_icon, gint volume) {
+  if (volume == 0) {
+	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-muted");
+  } else if (volume <= 33) {
+	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-low");
+  } else if (volume <= 66) {
+	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-medium");
+  } else if (volume <= 100) {
+	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-high");
   }
 }
 
 void on_volume_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
   gint value = (gint) gtk_range_get_value(GTK_RANGE(scale));
   set_volume(value);
-}
-
-void on_brightness_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
-  gint value = (gint) gtk_range_get_value(GTK_RANGE(scale));
-  fprintf(stdout, "brightness changed to %d\n", value);
+  set_status_icon_icon(GTK_STATUS_ICON(user_data), get_volume());
 }
 
 void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
@@ -50,23 +56,15 @@ void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
 }
 
 void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data){
-  gint volume = get_volume();
   GtkWidget *labelVolume = gtk_label_new("Volume:");
   gtk_widget_set_halign(labelVolume, GTK_ALIGN_START);
   GtkWidget *scaleVolume = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
   gtk_scale_set_value_pos(GTK_SCALE(scaleVolume), GTK_POS_RIGHT);
-  gtk_range_set_value(GTK_RANGE(scaleVolume), volume);
-  g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(on_volume_changed), NULL);
-  GtkWidget *labelBrightness = gtk_label_new("Brightness:");
-  gtk_widget_set_halign(labelBrightness, GTK_ALIGN_START);
-  GtkWidget *scaleBrightness = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-  gtk_scale_set_value_pos(GTK_SCALE(scaleBrightness), GTK_POS_RIGHT);
-  g_signal_connect(G_OBJECT(scaleBrightness), "value-changed", G_CALLBACK(on_brightness_changed), NULL);
+  gtk_range_set_value(GTK_RANGE(scaleVolume), get_volume());
+  g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(on_volume_changed), status_icon);
   GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(vbox), labelVolume);
   gtk_container_add(GTK_CONTAINER(vbox), scaleVolume);
-  gtk_container_add(GTK_CONTAINER(vbox), labelBrightness);
-  gtk_container_add(GTK_CONTAINER(vbox), scaleBrightness);
   GtkWidget *window = gtk_window_new(GTK_WINDOW_POPUP);
   gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
   gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
@@ -79,18 +77,17 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
   g_signal_connect(G_OBJECT(window), "button-press-event", G_CALLBACK(destroy_menu), NULL);
 }
 
-static void make_tray_icon(void){
-	GtkStatusIcon *tray_icon = gtk_status_icon_new();
-	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(make_menu), NULL);
-	g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
-	gtk_status_icon_set_from_icon_name(tray_icon, GTK_STOCK_PREFERENCES);
-	gtk_status_icon_set_tooltip_text(tray_icon, "Example Tray Icon");
-	gtk_status_icon_set_visible(tray_icon, TRUE);
+void make_status_icon(void){
+	GtkStatusIcon *status_icon = gtk_status_icon_new();
+	g_signal_connect(G_OBJECT(status_icon), "activate", G_CALLBACK(make_menu), NULL);
+	g_signal_connect(G_OBJECT(status_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
+  set_status_icon_icon(status_icon, get_volume());
+  gtk_status_icon_set_visible(status_icon, TRUE);
 }
 
 int main(int argc, char **argv) {
-	gtk_init(&argc, &argv);
-	make_tray_icon();
-	gtk_main();
-	return 0;
+  gtk_init(&argc, &argv);
+  make_status_icon();
+  gtk_main();
+  return 0;
 }
