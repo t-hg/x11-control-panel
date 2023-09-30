@@ -1,11 +1,41 @@
 #include <gtk/gtk.h>
 
+gint get_volume() {
+  FILE *f = popen("pamixer --get-volume", "r");
+  if (f == NULL) {
+    fprintf(stderr, "fail to open shell\n");
+    return 0;
+  }
+  char buf[64];
+  while (fgets(buf, sizeof(buf), f) != 0) {
+    /*...*/
+  }
+  int exit_status = pclose(f);
+  if (exit_status != 0) {
+    fprintf(stderr, "is pamixer installed?\n");
+    return 0;
+  }
+  return atoi(buf);
+}
+
+void set_volume(gint value) {
+  char str[128];
+  sprintf(str, "pamixer --set-volume %d", value);
+  if (system(str) == 0) {
+    fprintf(stdout, "volume changed to %d\n", value);
+  } else {
+    fprintf(stderr, "is pamixer installed?\n");
+  }
+}
+
 void on_volume_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
-  printf("Volume changed\n");
+  gint value = (gint) gtk_range_get_value(GTK_RANGE(scale));
+  set_volume(value);
 }
 
 void on_brightness_changed(GtkWidget *scale, GdkEvent *event, gpointer user_data) {
-  printf("Brightness changed\n");
+  gint value = (gint) gtk_range_get_value(GTK_RANGE(scale));
+  fprintf(stdout, "brightness changed to %d\n", value);
 }
 
 void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
@@ -20,10 +50,12 @@ void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
 }
 
 void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data){
+  gint volume = get_volume();
   GtkWidget *labelVolume = gtk_label_new("Volume:");
   gtk_widget_set_halign(labelVolume, GTK_ALIGN_START);
   GtkWidget *scaleVolume = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
   gtk_scale_set_value_pos(GTK_SCALE(scaleVolume), GTK_POS_RIGHT);
+  gtk_range_set_value(GTK_RANGE(scaleVolume), volume);
   g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(on_volume_changed), NULL);
   GtkWidget *labelBrightness = gtk_label_new("Brightness:");
   gtk_widget_set_halign(labelBrightness, GTK_ALIGN_START);
