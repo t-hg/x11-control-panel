@@ -28,13 +28,13 @@ void set_volume(gint value) {
 
 void set_status_icon_icon(GtkStatusIcon *status_icon, gint volume) {
   if (volume == 0) {
-	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-muted");
+    gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-muted");
   } else if (volume <= 33) {
-	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-low");
+    gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-low");
   } else if (volume <= 66) {
-	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-medium");
+    gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-medium");
   } else if (volume <= 100) {
-	  gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-high");
+    gtk_status_icon_set_from_icon_name(status_icon, "audio-volume-high");
   }
 }
 
@@ -78,9 +78,9 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
 }
 
 void make_status_icon(void){
-	GtkStatusIcon *status_icon = gtk_status_icon_new();
-	g_signal_connect(G_OBJECT(status_icon), "activate", G_CALLBACK(make_menu), NULL);
-	g_signal_connect(G_OBJECT(status_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
+  GtkStatusIcon *status_icon = gtk_status_icon_new();
+  g_signal_connect(G_OBJECT(status_icon), "activate", G_CALLBACK(make_menu), NULL);
+  g_signal_connect(G_OBJECT(status_icon), "popup-menu", G_CALLBACK(make_menu), NULL);
   set_status_icon_icon(status_icon, get_volume());
   gtk_status_icon_set_visible(status_icon, TRUE);
 }
