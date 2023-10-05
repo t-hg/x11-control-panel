@@ -69,9 +69,15 @@ void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gp
   gtk_range_set_value(GTK_RANGE(scaleVolume), get_volume());
   g_signal_connect(G_OBJECT(scaleVolume), "format-value", G_CALLBACK(scale_format_value), NULL);
   g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(scale_on_volume_changed), status_icon);
+  GtkWidget *switchMute = gtk_switch_new();
+  gtk_widget_set_halign(switchMute, GTK_ALIGN_START);
+  gtk_widget_set_valign(switchMute, GTK_ALIGN_CENTER);
+  GtkWidget *hbox = gtk_hbox_new(FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), scaleVolume, TRUE, TRUE, 0);
+  gtk_box_pack_end(GTK_BOX(hbox), switchMute, FALSE, FALSE, 0);
   GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(vbox), labelVolume);
-  gtk_container_add(GTK_CONTAINER(vbox), scaleVolume);
+  gtk_container_add(GTK_CONTAINER(vbox), hbox);
   GtkWidget *window = gtk_window_new(GTK_WINDOW_POPUP);
   gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
   gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
