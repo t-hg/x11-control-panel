@@ -93,7 +93,9 @@ void scale_on_volume_changed(GtkWidget *scale, gpointer user_data) {
 
 void switch_on_mute_changed(GtkWidget *_switch, gboolean state, gpointer user_data) {
   gtk_switch_set_state(GTK_SWITCH(_switch), state);
-  set_mute(state);
+  set_mute(!state);
+  GtkWidget *scale_volume = GTK_WIDGET(user_data);
+  gtk_widget_set_sensitive(scale_volume, state);
 }
 
 void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
@@ -108,23 +110,24 @@ void destroy_menu(GtkWidget *window, GdkEvent *event, gpointer user_data) {
 }
 
 void make_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data){
-  GtkWidget *labelVolume = gtk_label_new("Volume:");
-  gtk_widget_set_halign(labelVolume, GTK_ALIGN_START);
-  GtkWidget *scaleVolume = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-  gtk_scale_set_value_pos(GTK_SCALE(scaleVolume), GTK_POS_RIGHT);
-  gtk_range_set_value(GTK_RANGE(scaleVolume), get_volume());
-  g_signal_connect(G_OBJECT(scaleVolume), "format-value", G_CALLBACK(scale_format_value), NULL);
-  g_signal_connect(G_OBJECT(scaleVolume), "value-changed", G_CALLBACK(scale_on_volume_changed), NULL);
-  GtkWidget *switchMute = gtk_switch_new();
-  gtk_switch_set_state(GTK_SWITCH(switchMute), get_mute());
-  gtk_widget_set_halign(switchMute, GTK_ALIGN_START);
-  gtk_widget_set_valign(switchMute, GTK_ALIGN_CENTER);
-  g_signal_connect(G_OBJECT(switchMute), "state-set", G_CALLBACK(switch_on_mute_changed), NULL);
+  GtkWidget *label_volume = gtk_label_new("Volume:");
+  gtk_widget_set_halign(label_volume, GTK_ALIGN_START);
+  GtkWidget *scale_volume = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
+  gtk_scale_set_value_pos(GTK_SCALE(scale_volume), GTK_POS_RIGHT);
+  gtk_range_set_value(GTK_RANGE(scale_volume), get_volume());
+  gtk_widget_set_sensitive(scale_volume, !get_mute());
+  g_signal_connect(G_OBJECT(scale_volume), "format-value", G_CALLBACK(scale_format_value), NULL);
+  g_signal_connect(G_OBJECT(scale_volume), "value-changed", G_CALLBACK(scale_on_volume_changed), NULL);
+  GtkWidget *switch_mute = gtk_switch_new();
+  gtk_switch_set_state(GTK_SWITCH(switch_mute), !get_mute());
+  gtk_widget_set_halign(switch_mute, GTK_ALIGN_START);
+  gtk_widget_set_valign(switch_mute, GTK_ALIGN_CENTER);
+  g_signal_connect(G_OBJECT(switch_mute), "state-set", G_CALLBACK(switch_on_mute_changed), scale_volume);
   GtkWidget *hbox = gtk_hbox_new(false, 0);
-  gtk_box_pack_start(GTK_BOX(hbox), scaleVolume, true, true, 0);
-  gtk_box_pack_end(GTK_BOX(hbox), switchMute, false, false, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), scale_volume, true, true, 0);
+  gtk_box_pack_end(GTK_BOX(hbox), switch_mute, false, false, 0);
   GtkWidget *vbox = gtk_vbox_new(false, 0);
-  gtk_container_add(GTK_CONTAINER(vbox), labelVolume);
+  gtk_container_add(GTK_CONTAINER(vbox), label_volume);
   gtk_container_add(GTK_CONTAINER(vbox), hbox);
   GtkWidget *window = gtk_window_new(GTK_WINDOW_POPUP);
   gtk_window_set_decorated(GTK_WINDOW(window), false);
