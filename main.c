@@ -2,17 +2,31 @@
 
 GtkStatusIcon *status_icon;
 
+void log_error(const char* fmt2, ...) {
+  const char *fmt1 = "%s:%d ";
+  char *fmt = malloc(strlen(fmt1) + strlen(fmt2) + 1);
+  strcpy(fmt, fmt1);
+  strcat(fmt, fmt2);
+  va_list args;
+  va_start(args, fmt2);
+  vfprintf(stderr, fmt, args); 
+  va_end(args);
+  free(fmt);
+}
+
+#define LOG_ERROR(fmt, ...) log_error(fmt, __FILE__, __LINE__, __VA_ARGS__)
+
 int get_volume() {
   FILE *f = popen("pamixer --get-volume", "r");
   if (f == NULL) {
-    fprintf(stderr, "[get_volume] popen failed\n");
+    LOG_ERROR("popen failed\n", NULL);
     return 0;
   }
   char buf[128];
   while(fgets(buf, sizeof(buf), f) != NULL) {
   }
   if (pclose(f) != 0) {
-    fprintf(stderr, "[get_volume] pamixer --get-volume failed\n");
+    LOG_ERROR("pamixer --get-volume failed\n", NULL);
     return 0;
   }
   return atoi(buf);
@@ -22,7 +36,7 @@ void set_volume(int value) {
   char cmd[128];
   sprintf(cmd, "pamixer --set-volume %d", value);
   if(system(cmd) != 0) {
-    fprintf(stderr, "[set-volume] pamixer --set-volume failed\n");
+    LOG_ERROR("pamixer --set-volume failed\n", NULL);
   }
 }
 
